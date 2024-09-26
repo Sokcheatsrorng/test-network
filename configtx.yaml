@@ -1,0 +1,167 @@
+Organizations:
+  - &OrdererOrg
+    Name: OrderingService
+    ID: OrdererMSP
+    MSPDir: crypto-config/ordererOrganizations/gentwoblockchain-network.com/msp
+    
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('OrdererMSP.admin')"
+
+    OrdererEndpoints:
+      - orderer.gentwoblockchain-network.com:7050
+
+  - &gentwoblockchain1
+    Name: gentwoblockchain1MSP
+    ID: gentwoblockchain1MSP
+    MSPDir: crypto-config/peerOrganizations/org1.gentwoblockchain-network.com/msp
+    
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('gentwoblockchain1MSP.admin', 'gentwoblockchain1MSP.peer', 'gentwoblockchain1MSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('gentwoblockchain1MSP.admin', 'gentwoblockchain1MSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('gentwoblockchain1MSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('gentwoblockchain1MSP.peer')"     
+
+    AnchorPeers:
+      - Host: peer0.org1.gentwoblockchain-network.com
+        Port: 7051
+
+  - &gentwoblockchain2
+    Name: gentwoblockchain2MSP
+    ID: gentwoblockchain2MSP
+    MSPDir: crypto-config/peerOrganizations/org2.gentwoblockchain-network.com/msp
+    
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('gentwoblockchain2MSP.admin', 'gentwoblockchain2MSP.peer', 'gentwoblockchain2MSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('gentwoblockchain2MSP.admin', 'gentwoblockchain2MSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('gentwoblockchain2MSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('gentwoblockchain2MSP.peer')" 
+
+    AnchorPeers:
+      - Host: peer0.org2.gentwoblockchain-network.com
+        Port: 7051
+
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+
+  Orderer: &OrdererCapabilities
+    V2_0: true
+
+  Application: &ApplicationCapabilities
+    V2_0: true
+
+# Orderer
+Orderer: &OrdererDefaults
+  OrdererType: solo
+  Addresses: 
+    - orderer.gentwoblockchain-network.com:7050
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+  Kafka:
+    Brokers: 
+      - 127.0.0.1:9092
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *ChannelCapabilities
+
+# Application
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+Profiles:
+  OrdererGenesis:
+    <<: *ChannelDefaults
+    Capabilities:
+      <<: *ChannelCapabilities
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *OrdererOrg
+      Capabilities:
+        <<: *OrdererCapabilities
+    Consortiums:
+      MyFirstConsortium:
+        Organizations:
+          - *gentwoblockchain1 
+          - *gentwoblockchain2
+          
+  ChannelDemo:
+    Consortium: MyFirstConsortium
+    <<: *ChannelDefaults
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *gentwoblockchain1
+        - *gentwoblockchain2
+      Capabilities:
+        <<: *ApplicationCapabilities

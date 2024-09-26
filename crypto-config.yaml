@@ -1,0 +1,31 @@
+## set up net work name genTwoBlockchain 
+
+# Orderer Organization
+OrdererOrgs:
+  - Name: Orderer
+    Domain: gentwoblockchain-network.com
+    Specs:
+      - Hostname: orderer
+
+# Peer Organizations
+PeerOrgs:
+  - Name: org2
+    Domain: org2.gentwoblockchain-network.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+      
+    Users:
+      Count: 1
+
+  - Name: Org2
+    Domain: org2.gentwoblockchain-network.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+
+    Users:
+      Count: 1
+
+
+     
